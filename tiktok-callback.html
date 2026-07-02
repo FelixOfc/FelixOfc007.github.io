@@ -3,61 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clipadas — Autorizando TikTok...</title>
+  <title>Clipadas — TikTok Autorizado</title>
   <style>
     body { font-family: system-ui, sans-serif; background: #0d0d0d; color: #e5e5e5;
-           display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+           display: flex; align-items: center; justify-content: center;
+           min-height: 100vh; margin: 0; padding: 20px; }
     .box { background: #161616; border: 1px solid #2a2a2a; border-radius: 12px;
-           padding: 40px; max-width: 480px; width: 90%; text-align: center; }
-    h2 { color: #7c3aed; margin-bottom: 16px; }
-    p  { color: #888; font-size: 14px; line-height: 1.6; }
-    .ok   { color: #10b981; font-weight: 700; font-size: 18px; margin-top: 20px; }
-    .erro { color: #ef4444; font-weight: 700; font-size: 16px; margin-top: 20px; }
-    .code-box { background: #0a0a0a; border: 1px solid #2a2a2a; border-radius: 8px;
-                padding: 14px; font-family: monospace; font-size: 13px; color: #aaa;
-                word-break: break-all; margin: 16px 0; }
-    button { background: #7c3aed; color: #fff; border: none; border-radius: 6px;
-             padding: 10px 24px; font-size: 14px; cursor: pointer; margin-top: 10px; }
-    button:hover { background: #6d28d9; }
+           padding: 36px; max-width: 480px; width: 100%; text-align: center; }
+    h2  { color: #7c3aed; margin-bottom: 12px; }
+    p   { color: #888; font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+    .code-box { background: #0a0a0a; border: 2px solid #7c3aed; border-radius: 8px;
+                padding: 16px; font-family: monospace; font-size: 13px;
+                word-break: break-all; color: #fff; margin-bottom: 20px; min-height: 52px; }
+    .btn { background: #7c3aed; color: #fff; border: none; padding: 12px 28px;
+           border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 700; }
+    .btn:hover { background: #6d28d9; }
+    .ok   { color: #10b981; font-weight: 700; }
+    .erro { color: #ef4444; }
   </style>
 </head>
 <body>
-<div class="box">
-  <h2>Clipadas</h2>
-  <div id="conteudo"><p>Processando autorização do TikTok...</p></div>
-</div>
+  <div class="box">
+    <h2>TikTok Autorizado</h2>
+    <p>Copie o código abaixo e cole no campo que apareceu no painel do Clipadas:</p>
+    <div class="code-box" id="codigo">Carregando...</div>
+    <button class="btn" onclick="copiar()">Copiar Código</button>
+    <p id="msg" style="margin-top:14px"></p>
+  </div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const code   = params.get("code")  || "";
+    const erro   = params.get("error") || "";
 
-<script>
-  const params = new URLSearchParams(window.location.search);
-  const code   = params.get("code");
-  const el     = document.getElementById("conteudo");
+    if (erro) {
+      document.getElementById("codigo").textContent = "Erro: " + erro;
+    } else if (code) {
+      document.getElementById("codigo").textContent = code;
+    } else {
+      document.getElementById("codigo").textContent = "Nenhum código na URL.";
+    }
 
-  if (!code) {
-    el.innerHTML = '<p class="erro">Nenhum código encontrado na URL.<br>Tente autenticar de novo.</p>';
-  } else {
-    // Tenta enviar o código automaticamente pro painel local
-    fetch("http://localhost:5000/api/tiktok/codigo", {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({ code }),
-    })
-    .then(r => {
-      if (r.ok) {
-        el.innerHTML = '<p class="ok">✓ TikTok autorizado com sucesso!</p><p>Pode fechar esta aba — o upload vai continuar no painel.</p>';
-      } else {
-        mostrarManual(code);
-      }
-    })
-    .catch(() => mostrarManual(code));
-  }
-
-  function mostrarManual(code) {
-    el.innerHTML = `
-      <p>Não foi possível enviar automaticamente. Cole o código abaixo no painel do Clipadas:</p>
-      <div class="code-box">${code}</div>
-      <button onclick="navigator.clipboard.writeText('${code}').then(() => this.textContent = 'Copiado!')">Copiar código</button>
-    `;
-  }
-</script>
+    function copiar() {
+      const msg = document.getElementById("msg");
+      navigator.clipboard.writeText(code).then(() => {
+        msg.textContent = "Copiado! Cole no painel do Clipadas e clique OK.";
+        msg.className = "ok";
+      }).catch(() => {
+        msg.textContent = "Selecione e copie o código manualmente.";
+        msg.className = "erro";
+      });
+    }
+  </script>
 </body>
 </html>
